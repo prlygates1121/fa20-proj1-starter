@@ -32,7 +32,8 @@ int main(int argc, char **argv)
 	uint32_t rule;
 	char *filename;
 	processCLI(argc,argv,&filename);
-	image = readData(filename);
+//    image = readData(NULL);
+	image = readData(argv[1]);
 	writeData(image);
 	freeImage(image);
 }

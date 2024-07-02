@@ -29,8 +29,8 @@ Image *readData(char *filename)
 {
 	FILE *fp = fopen(filename, "r");
     if (fp == NULL) {
-        fprintf(stderr, "Error: Unable To Open File\n");
-        fclose(fp);
+        fprintf(stderr, "Error: Unable To Open Files\n");
+        //fclose(fp); // Don't use fclose() on a NULL pointer!!!
         return NULL;
     }
 
@@ -43,6 +43,10 @@ Image *readData(char *filename)
     }
 
     Image *im = (Image*) malloc(sizeof(Image));
+    if (im == NULL) {
+        fprintf(stderr, "Error: Memory Allocation Failure\n");
+        return NULL;
+    }
     fscanf(fp, "%"PRIu32" %"PRIu32"", &im->cols, &im->rows);
 
     int maxColors;
@@ -57,6 +61,14 @@ Image *readData(char *filename)
     im->image = (Color **) malloc(im->rows * sizeof(Color *));
     for (uint32_t row = 0; row < im->rows; row++) {
         im->image[row] = (Color *) malloc(im->cols * sizeof(Color));
+        if (im->image[row] == NULL) {
+            for (uint32_t i = 0; i < row; i++) {
+                free(im->image[i]);
+            }
+            free(im);
+            fprintf(stderr, "Error: Memory Allocation Failure\n");
+            return NULL;
+        }
         for (uint32_t col = 0; col < im->cols; col++) {
             fscanf(fp, "%3hhu %3hhu %3hhu", &(im->image[row][col].R), &(im->image[row][col].G), &(im->image[row][col].B));
         }

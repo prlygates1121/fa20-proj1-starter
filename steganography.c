@@ -19,15 +19,54 @@
 #include "imageloader.h"
 
 //Determines what color the cell at the given row/col should be. This should not affect Image, and should allocate space for a new Color.
-Color *evaluateOnePixel(Image *image, int row, int col)
+Color *evaluateOnePixel(Image *image, int row)
 {
-	//YOUR CODE HERE
+    Color *rowOfColors = (Color*) malloc(image->cols * sizeof(Color));
+    if (rowOfColors == NULL) {
+        fprintf(stderr, "Error: Memory Allocation Failure\n");
+        return NULL;
+    }
+	for (uint32_t col = 0; col < image->cols; col++) {
+        if ((image->image[row][col].B & 1) == 1) {
+            rowOfColors[col].R = 255;
+            rowOfColors[col].G = 255;
+            rowOfColors[col].B = 255;
+        } else {
+            rowOfColors[col].R = 0;
+            rowOfColors[col].G = 0;
+            rowOfColors[col].B = 0;
+        }
+    }
+    return rowOfColors;
 }
 
 //Given an image, creates a new image extracting the LSB of the B channel.
 Image *steganography(Image *image)
 {
-	//YOUR CODE HERE
+	Image *newImage = (Image*) malloc(sizeof(Image));
+    if (newImage == NULL) {
+        fprintf(stderr, "Error: Memory Allocation Failure\n");
+        return NULL;
+    }
+    newImage->rows = image->rows;
+    newImage->cols = image->cols;
+    newImage->image = (Color**) malloc(newImage->rows * sizeof(Color*));
+    if (newImage->image == NULL) {
+        free(newImage);
+        fprintf(stderr, "Error: Memory Allocation Failure\n");
+        return NULL;
+    }
+    for (uint32_t row = 0; row < newImage->rows; row++) {
+        newImage->image[row] = evaluateOnePixel(image, row);
+        if (newImage->image[row] == NULL) {
+            for (uint32_t i = 0; i < row; i++) {
+                free(newImage->image[i]);
+            }
+            free(newImage);
+            return NULL;
+        }
+    }
+    return newImage;
 }
 
 /*
@@ -45,5 +84,21 @@ Make sure to free all memory before returning!
 */
 int main(int argc, char **argv)
 {
-	//YOUR CODE HERE
+    if (argc != 2) {
+        return -1;
+    }
+    char *filename = argv[1];
+	Image *original = readData(filename);
+    if (original == NULL) {
+        return -1;
+    }
+    Image *edited = steganography(original);
+    if (edited == NULL) {
+        freeImage(original);
+        return -1;
+    }
+    writeData(edited);
+    freeImage(original);
+    freeImage(edited);
+    return 0;
 }
