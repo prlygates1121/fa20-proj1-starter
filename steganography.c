@@ -19,7 +19,7 @@
 #include "imageloader.h"
 
 //Determines what color the cell at the given row/col should be. This should not affect Image, and should allocate space for a new Color.
-Color *evaluateOnePixel(Image *image, int row)
+Color *evaluateARowOfPixels(Image *image, int row)
 {
     Color *rowOfColors = (Color*) malloc(image->cols * sizeof(Color));
     if (rowOfColors == NULL) {
@@ -57,7 +57,7 @@ Image *steganography(Image *image)
         return NULL;
     }
     for (uint32_t row = 0; row < newImage->rows; row++) {
-        newImage->image[row] = evaluateOnePixel(image, row);
+        newImage->image[row] = evaluateARowOfPixels(image, row);
         if (newImage->image[row] == NULL) {
             for (uint32_t i = 0; i < row; i++) {
                 free(newImage->image[i]);
